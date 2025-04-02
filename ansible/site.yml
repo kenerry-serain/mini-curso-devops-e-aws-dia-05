@@ -1,0 +1,46 @@
+---
+- name: Install AWS Load Balancer Controller
+  gather_facts: false
+  hosts: localhost
+  vars:
+    aws_region: us-west-1
+    eks_cluster: devops-na-nuvem-eks-cluster
+    aws_account_id: 968225077300
+    vpc_id: vpc-03c820d5144080de8
+  tasks:
+    - name: Download IAM Policy
+      shell: |
+        curl https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.12.0/docs/install/iam_policy.json
+      register: iam_policy_json
+
+    - name: Create IAM Policy
+      shell: |
+        aws iam create-policy \
+          --policy-name AWSLoadBalancerControllerIAMPolicy \
+          --policy-document '{{ iam_policy_json.stdout }}'
+
+    - name: Setup IRSA
+      shell: |
+        eksctl create iamserviceaccount \
+          --cluster={{eks_cluster}} \
+          --namespace=kube-system \
+          --name=aws-load-balancer-controller \
+          --attach-policy-arn=arn:aws:iam::968225077300:policy/AWSLoadBalancerControllerIAMPolicy \
+          --override-existing-serviceaccounts \
+          --region {{aws_region}} \
+          --approve
+
+    - name: Helm Repo Add
+      shell: |
+        helm repo add eks https://aws.github.io/eks-charts
+        helm repo update eks
+
+    - name: Helm Install
+      shell: |
+        helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+          -n kube-system \
+          --set clusterName={{eks_cluster}} \
+          --set serviceAccount.create=false \
+          --set region={{aws_region}} \
+          --set vpcId={{vpc_id}} \
+          --set serviceAccount.name=aws-load-balancer-controller
