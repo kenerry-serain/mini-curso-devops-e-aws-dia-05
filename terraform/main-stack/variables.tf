@@ -14,7 +14,7 @@ variable "assume_role" {
 
   default = {
     region   = "us-west-1"
-    role_arn = "arn:aws:iam::968225077300:role/DevOpsNaNuvemLive-42026310-919c-4dff-83e6-f89ad2f5c8f3"
+    role_arn = "<YOUR_ROLE_ARN>"
   }
 }
 

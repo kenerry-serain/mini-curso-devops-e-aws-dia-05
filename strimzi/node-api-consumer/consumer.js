@@ -2,7 +2,7 @@ const express = require("express");
 const { Kafka } = require("kafkajs");
 
 const app = express();
-const kafka = new Kafka({ brokers: ["172.20.200.127:9092"] });
+const kafka = new Kafka({ brokers: ["172.20.160.1:9092"] });
 const consumer = kafka.consumer({ groupId: "my-group" });
 
 let currentTopic = null;
